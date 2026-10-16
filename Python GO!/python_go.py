@@ -6,7 +6,7 @@ import sys
 import tokenize
 from pathlib import Path
 
-VERSION = "0.1.5"
+VERSION = "0.1.7"
 
 BASE = Path(__file__).resolve().parent
 PASTA_PATCHES = BASE / "patches"
