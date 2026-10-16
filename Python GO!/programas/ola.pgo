@@ -1,0 +1,15 @@
+
+idioma("PGO-PT-BR")
+
+variavel vida = 100
+
+mostrar("Bem-vindo ao Python GO!")
+mostrar("Vida:", vida)
+
+se vida > 0:
+    mostrar("Você está vivo!")
+senao:
+    mostrar("Game Over!")
+
+para numero em range(3):
+    mostrar("GO!", numero + 1)

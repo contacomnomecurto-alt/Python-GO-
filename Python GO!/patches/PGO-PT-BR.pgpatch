@@ -1,0 +1,19 @@
+
+{
+  "id": "PGO-PT-BR",
+  "idioma": "Português",
+  "keywords": {
+    "mostrar": "print",
+    "se": "if",
+    "senao": "else",
+    "enquanto": "while",
+    "para": "for",
+    "em": "in",
+    "verdadeiro": "True",
+    "falso": "False",
+    "nulo": "None",
+    "e": "and",
+    "ou": "or",
+    "nao": "not"
+  }
+}
