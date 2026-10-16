@@ -1,7 +1,9 @@
 
+import io
 import json
 import re
 import sys
+import tokenize
 from pathlib import Path
 
 VERSION = "0.1.5"
@@ -31,31 +33,42 @@ def carregar_patch(nome):
 
 
 def traduzir(codigo, palavras):
-    resultado = []
+    linhas = codigo.splitlines(keepends=True)
+    deslocamentos = [0]
+    for linha in linhas:
+        deslocamentos.append(deslocamentos[-1] + len(linha))
 
-    for linha in codigo.splitlines():
-        linha = re.sub(
-            r"^(\s*)variavel\s+",
-            r"\1",
-            linha
-        )
+    substituicoes = []
+    tokens = tokenize.generate_tokens(io.StringIO(codigo).readline)
+    for token in tokens:
+        if token.type != tokenize.NAME:
+            continue
 
-        partes = re.split(
-            r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|#.*)',
-            linha
-        )
+        linha = linhas[token.start[0] - 1]
+        prefixo = linha[:token.start[1]]
+        espacos = re.match(r"[ \t]+", linha[token.end[1]:])
+        if (
+            token.string == "variavel"
+            and re.fullmatch(r"[ \t]*", prefixo)
+            and espacos
+        ):
+            fim = deslocamentos[token.end[0] - 1] + token.end[1] + len(espacos.group())
+            inicio = deslocamentos[token.start[0] - 1] + token.start[1]
+            substituicoes.append((inicio, fim, ""))
+            continue
 
-        for i, parte in enumerate(partes):
-            if i % 2 == 0:
-                partes[i] = re.sub(
-                    r"\b[A-Za-z_][A-Za-z0-9_]*\b",
-                    lambda m: palavras.get(m.group(), m.group()),
-                    parte
-                )
+        substituto = palavras.get(token.string)
+        if substituto is None:
+            continue
 
-        resultado.append("".join(partes))
+        inicio = deslocamentos[token.start[0] - 1] + token.start[1]
+        fim = deslocamentos[token.end[0] - 1] + token.end[1]
+        substituicoes.append((inicio, fim, substituto))
 
-    return "\n".join(resultado)
+    for inicio, fim, substituto in reversed(substituicoes):
+        codigo = codigo[:inicio] + substituto + codigo[fim:]
+
+    return codigo
 
 
 def executar(nome):
@@ -65,7 +78,15 @@ def executar(nome):
         arquivo = arquivo.with_suffix(".pgo")
 
     if not arquivo.is_absolute():
-        arquivo = PASTA_PROGRAMAS / arquivo
+        candidatos = (
+            arquivo,
+            BASE / arquivo,
+            PASTA_PROGRAMAS / arquivo,
+        )
+        arquivo = next(
+            (candidato for candidato in candidatos if candidato.is_file()),
+            PASTA_PROGRAMAS / arquivo,
+        )
 
     if not arquivo.is_file():
         raise RuntimeError(
