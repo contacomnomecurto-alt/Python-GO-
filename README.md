@@ -1,5 +1,4 @@
 # Python-GO!
-Python GO!
 
 Python GO! é uma linguagem de programação experimental inspirada em Python, desenvolvida para permitir a escrita de programas em diferentes idiomas por meio de patches.
 
